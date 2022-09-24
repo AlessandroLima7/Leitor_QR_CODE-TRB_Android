@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Projeto 5N -Professor Rangel</string>
+    <string name="lblLogin">Login</string>
+    <string name="edtNome">NOME</string>
+    <string name="edtSenha">SENHA</string>
+    <string name="lblComecar">Comece o processo de busca pelo QR code</string>
+    <string name="edtEan13">INSERIR CÓDIGO EAN13</string>
+    <string name="edtRua">INSERIR RUA</string>
+    <string name="btnEntrar">ENTRAR</string>
+    <string name="btnBuscar">BUSCAR</string>
+    <string name="btnConferirRua">CONFERIR RUA</string>
+    <string name="btnConferirNumero">CONFERIR NÚMERO</string>
+    <string name="btnConferirAndar">CONFERIR ANDAR</string>
+
+
+</resources>
