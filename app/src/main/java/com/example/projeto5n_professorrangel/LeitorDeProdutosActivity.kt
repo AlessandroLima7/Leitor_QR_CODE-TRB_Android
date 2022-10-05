@@ -4,30 +4,67 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
-import androidx.annotation.CallSuper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
-import org.w3c.dom.Text
 
 class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
+    var pro:Produtos = Produtos();
+    var codigoMaster:String = ""
+    var n = ""
+    var a = ""
 
-    var resultado:String = "" //  PARA GUARDAR O RESULTADO DE TODO QR CODE LIDO
+    var rua:String = ""
+    var numero:String = ""
+    var andar:String = ""
+    var produto:String = ""
+    var strQtdEstoque:String = ""
+
     var ruaFinal:Boolean = false // PARA DIZER SE O
     var numeroFinal:Boolean = false
     var andarFinal:Boolean = false
-    var apertado:Boolean = false
     var produtoEncontrado:Boolean = false
-    var codigoMaster:String = ""
-    var codigoTeste:String = ""
 
-    fun atualizar(res:String) {
-        Toast.makeText(applicationContext, "Lido: " +  res , Toast.LENGTH_SHORT).show()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.leitor_de_produtos)
+
+        val btnBuscar = findViewById<Button>(R.id.btnBuscar)
+        val btnRestart = findViewById<Button>(R.id.btnRestart)
+
+        btnBuscar.setOnClickListener(){
+            val scanner = IntentIntegrator(this)
+            scanner.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
+            scanner.setBeepEnabled((false))
+            scanner.initiateScan()
+        }
+
+        btnRestart.setOnClickListener(){
+            btnBuscar.isVisible = true
+            codigoMaster = ""
+
+            rua = ""
+            numero = ""
+            andar = ""
+            produto = ""
+            strQtdEstoque = ""
+
+            n = ""
+            a = ""
+
+            ruaFinal = false
+            numeroFinal = false
+            andarFinal = false
+            produtoEncontrado = false
+
+            val txtRua = findViewById<TextView>(R.id.txtRua)
+            txtRua.isVisible = false
+            txtRua.text = ""
+        }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -38,113 +75,102 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                 Toast.makeText(applicationContext, "Não escaneado.", Toast.LENGTH_SHORT).show()
             }
             else {
-               // Toast.makeText(applicationContext, "Primeiro Scanner." + result.contents, Toast.LENGTH_SHORT).show()
-                resultado = result.contents.toString()
-                val txtRua = findViewById<TextView>(R.id.txtRua)
-                atualizar(resultado)
-                val codigos = HashMap<String, String>()
-
-                codigos["7894900010015"] = "7894900010015|COCA LATA 350ML|RA|N1|1A|1000"
-                codigos["7894900011517"] = "7894900011517|COCA GARRAFA 2L|RA|N1|2A|1000"
-                codigos["7891991000833"] = "7891991000833|SODA LIMONADA|RA|N1|3A|1000"
-                codigos["7896004000855"] = "7896004000855|SUCRILHOS KELLOGG'S ORIGINAL 250G |RB|N1|1A|1000"
-
-                if(codigoMaster == "") {
-                    codigoTeste = resultado
-                }
-                else {
-                    codigoTeste = codigoMaster
-                }
-
-                val codigo = codigos[codigoTeste]?.split("|")
-
-                if(codigo?.get(0) == null) {
-                    Toast.makeText(applicationContext, "Código EAN13 não encontrado!", Toast.LENGTH_SHORT).show()
-                }
-                else if(codigoMaster == ""){
-                    val rua = codigo?.get(2).toString()
-                    txtRua.text = codigoMaster
-                    Toast.makeText(applicationContext, "Encontre a rua: $rua", Toast.LENGTH_SHORT).show()
-                    codigoMaster = resultado
-                    apertado = true
-
-                }
-                else {
-                    apertado = true
-
-                    val ean = codigo?.get(0).toString()
-                    val rua = codigo?.get(2).toString()
-                    val numero = codigo?.get(2).toString() + "-" + codigo?.get(3).toString()
-                    val andar = codigo?.get(2).toString() + "-" + codigo?.get(3).toString() + "-" + codigo?.get(4).toString()
-                    val produto = codigo?.get(1).toString()
-                    val strQtdEstoque = codigo?.get(5).toString()
-                    var qtdEstoque = strQtdEstoque.toDouble()
-
-
-                    if(rua != resultado && !ruaFinal) {
-                        Toast.makeText(applicationContext, "Encontre a rua: $rua  ", Toast.LENGTH_LONG).show()
-                    }
-                    else {
-                        ruaFinal = true
-                        if(numero != resultado && !numeroFinal) {
-                            Toast.makeText(applicationContext, "Encontre o número: $numero ", Toast.LENGTH_LONG).show()
-                        }
-                        else {
-                            numeroFinal = true
-                            if(andar != resultado && !andarFinal) {
-                                Toast.makeText(applicationContext, "Encontre o andar: $andar", Toast.LENGTH_LONG).show()
-                            }
-                            else {
-                                andarFinal = true
-                                Toast.makeText(applicationContext, "Produto Encontrado: $produto", Toast.LENGTH_LONG).show()
-                                produtoEncontrado = true
-                                qtdEstoque -= 1.0
-                                var estoque = qtdEstoque.toString()
-                                codigos[codigoMaster] = "$codigoMaster|$produto|$rua|$numero|$andar|$estoque"
-                                txtRua.isVisible = true
-                                txtRua.text = "Código EAN: $ean \nRua: $rua \nNúmero: $numero \nAndar: $andar \nProduto: $produto\nEstoque: $estoque"
-                                codigoMaster = ""
-
-                            }
-                        }
-                    }
-
-                }
-
+                // Toast.makeText(applicationContext, "Primeiro Scanner." + result.contents, Toast.LENGTH_SHORT).show()
+                val res = result.contents.toString()
+                systemLogic(res)
             }
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.leitor_de_produtos)
-
-        val btnBuscar = findViewById<Button>(R.id.btnBuscar)
-        val btnRestart = findViewById<Button>(R.id.btnRestart)
-        btnBuscar.setOnClickListener(){
-                val scanner = IntentIntegrator(this)
-                scanner.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
-                scanner.setBeepEnabled((false))
-                scanner.initiateScan()
-                }
-
-        btnRestart.setOnClickListener(){
-             resultado = ""
-             ruaFinal = false
-             numeroFinal = false
-             andarFinal = false
-            apertado = false
-             produtoEncontrado = false
-            codigoMaster = ""
-            codigoTeste = ""
-
+    fun systemLogic(result:String) {
+        resultRead(result)
+        if(codigoMaster == "") {
+            var tudo = pro.search(result)
+            if(tudo == "Código EAN13 não encontrado.") {
+                Toast.makeText(applicationContext, "Código EAN13 não encontrado!", Toast.LENGTH_SHORT).show()
+            }
+            else {
+                val codigo = tudo.split("|")
+                codigoMaster = codigo[0]
+                rua = codigo[2]
+                numero = codigo[2] + "-" + codigo[3]
+                n = codigo[3]
+                andar = codigo[2] + "-" + codigo[3] + "-" + codigo[4]
+                a = codigo[4]
+                produto = codigo[1]
+                strQtdEstoque = codigo[5]
+                var resp = rua.replace("R", "RUA ")
+                val txtRua = findViewById<TextView>(R.id.txtRua)
+                txtRua.isVisible = true
+                txtRua.text = "Encontre: $resp"
+            }
+        }
+        else {
             val txtRua = findViewById<TextView>(R.id.txtRua)
-            txtRua.isVisible = false
-            txtRua.text = ""
+
+            if(result != rua && !ruaFinal) {
+                var resp = rua.replace("R", "RUA ")
+                txtRua.isVisible = true
+                txtRua.text = "Encontre: $resp"
+            }
+            else {
+                ruaFinal = true
+                if(result != numero && !numeroFinal) {
+                    var resp = rua.replace("R", "RUA ")
+                    resp += n.replace("N", " - NÚMERO ")
+                    txtRua.text = "Encontre: $resp"
+                }
+                else {
+                    numeroFinal = true
+                    if(result != andar && !andarFinal) {
+                        var resp = rua.replace("R", "RUA ")
+                        resp += n.replace("N", " - NÚMERO ")
+                        resp += " - " + a.replace("A", "ª ANDAR ")
+                        txtRua.text = "Encontre: $resp"
+                    }
+                    else {
+                        val btnBuscar = findViewById<Button>(R.id.btnBuscar)
+                        btnBuscar.isVisible = false
+                        andarFinal = true
+                        Toast.makeText(applicationContext, "Produto Encontrado: $produto", Toast.LENGTH_LONG).show()
+                        produtoEncontrado = true
+                        var qtdEstoque = strQtdEstoque.toInt()
+                        qtdEstoque -= 1
+                        var estoque = qtdEstoque.toString()
+                        val tudo = pro.search(codigoMaster)
+                        val cod = tudo.split(("|"))
+                        val nume = cod[3]
+                        val and = cod[4]
+                        pro.insert(codigoMaster, "$codigoMaster|$produto|$rua|$nume|$and|$estoque")
+                        txtRua.text = "Código EAN: $codigoMaster \nRua: ${rua.replace("R", "RUA ")} " +
+                                "\nNúmero: ${n.replace("N", "NÚMERO ")} \nAndar: ${a.replace("A", "º ANDAR")} \nProduto: $produto\nEstoque: $estoque"
+                        codigoMaster = ""
+                    }
+                }
+            }
+        }
+    }
+
+    fun resultRead(res:String) {
+        var resp = res
+
+        if(res.length == 2){
+            resp = res.replace("R", "RUA ")
+        }
+        else if(res.length == 5){
+            resp = res.replace("R", "RUA ").replace("-", " - ")
+            resp = resp.replace("N", "NÚMERO ")
+        } else if(res.length == 8){
+            resp = res.replace("R", "RUA ")
+            resp = resp.replace("N", "NÚMERO ")
+
+            var nova = resp.split("-")
+            var andar = nova[2].replace("A", "º ANDAR")
+            resp = nova[0] + " - " + nova[1] + " - " + andar
         }
 
-            }
-
+        Toast.makeText(applicationContext, "$resp", Toast.LENGTH_SHORT).show()
+    }
         }
 
 
