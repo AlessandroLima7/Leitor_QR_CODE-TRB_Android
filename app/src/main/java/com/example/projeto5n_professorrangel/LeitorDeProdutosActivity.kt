@@ -17,8 +17,8 @@ import org.w3c.dom.Text
 
 class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
 
-    var resultado:String = ""
-    var ruaFinal:Boolean = false
+    var resultado:String = "" //  PARA GUARDAR O RESULTADO DE TODO QR CODE LIDO
+    var ruaFinal:Boolean = false // PARA DIZER SE O
     var numeroFinal:Boolean = false
     var andarFinal:Boolean = false
     var apertado:Boolean = false
@@ -44,10 +44,10 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                 atualizar(resultado)
                 val codigos = HashMap<String, String>()
 
-                codigos["7894900010015"] = "7894900010015|COCA LATA 350ML|RA|N1|1A"
-                codigos["7894900011517"] = "7894900011517|COCA GARRAFA 2L|RA|N1|2A"
-                codigos["7891991000833"] = "7891991000833|SODA LIMONADA|RA|N1|3A"
-                codigos["7896004000855"] = "7896004000855|SUCRILHOS KELLOGG'S ORIGINAL 250G |RB|N1|1A"
+                codigos["7894900010015"] = "7894900010015|COCA LATA 350ML|RA|N1|1A|1000"
+                codigos["7894900011517"] = "7894900011517|COCA GARRAFA 2L|RA|N1|2A|1000"
+                codigos["7891991000833"] = "7891991000833|SODA LIMONADA|RA|N1|3A|1000"
+                codigos["7896004000855"] = "7896004000855|SUCRILHOS KELLOGG'S ORIGINAL 250G |RB|N1|1A|1000"
 
                 if(codigoMaster == "") {
                     codigoTeste = resultado
@@ -77,6 +77,8 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                     val numero = codigo?.get(2).toString() + "-" + codigo?.get(3).toString()
                     val andar = codigo?.get(2).toString() + "-" + codigo?.get(3).toString() + "-" + codigo?.get(4).toString()
                     val produto = codigo?.get(1).toString()
+                    val strQtdEstoque = codigo?.get(5).toString()
+                    var qtdEstoque = strQtdEstoque.toDouble()
 
 
                     if(rua != resultado && !ruaFinal) {
@@ -96,9 +98,13 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                                 andarFinal = true
                                 Toast.makeText(applicationContext, "Produto Encontrado: $produto", Toast.LENGTH_LONG).show()
                                 produtoEncontrado = true
-                                codigoMaster = ""
+                                qtdEstoque -= 1.0
+                                var estoque = qtdEstoque.toString()
+                                codigos[codigoMaster] = "$codigoMaster|$produto|$rua|$numero|$andar|$estoque"
                                 txtRua.isVisible = true
-                                txtRua.text = "Código EAN: $ean \nRua: $rua \nNúmero: $numero \nAndar: $andar \nProduto: $produto"
+                                txtRua.text = "Código EAN: $ean \nRua: $rua \nNúmero: $numero \nAndar: $andar \nProduto: $produto\nEstoque: $estoque"
+                                codigoMaster = ""
+
                             }
                         }
                     }
@@ -120,8 +126,6 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                 scanner.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
                 scanner.setBeepEnabled((false))
                 scanner.initiateScan()
-
-
                 }
 
         btnRestart.setOnClickListener(){
