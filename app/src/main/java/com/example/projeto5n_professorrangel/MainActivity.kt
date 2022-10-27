@@ -29,11 +29,13 @@ class MainActivity : AppCompatActivity() {
             val strSenha: String = edtSenha.text.toString()
             val usuario = usuarios[strNome]?.split("|")
             if(usuario?.get(0)?.compareTo(strNome) != 0) {
-                Toast.makeText(applicationContext, "Usuário Incorreto. Tente novamente.", Toast.LENGTH_LONG).show()
+                Toast.makeText(applicationContext, "Usuário ou Senha Incorreto. Tente novamente.", Toast.LENGTH_LONG).show()
                 edtNome.setText("")
-            } else if(usuario?.get(2)?.compareTo(strSenha) != 0) {
-                Toast.makeText(applicationContext, "Senha Incorreta. Tente novamente.", Toast.LENGTH_LONG).show()
                 edtSenha.setText("")
+            } else if(usuario?.get(2)?.compareTo(strSenha) != 0) {
+                Toast.makeText(applicationContext, "Usuário ou Senha Incorreto. Tente novamente.", Toast.LENGTH_LONG).show()
+                edtSenha.setText("")
+                edtNome.setText("")
             } else {
                 Toast.makeText(applicationContext, "Seja bem-vindo " + usuario[1].toString()+".", Toast.LENGTH_LONG).show()
                 val intent = Intent(this, LeitorDeProdutosActivity::class.java)

@@ -47,16 +47,26 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_begin="235dp" />
+        app:layout_constraintGuide_begin="174dp" />
 
     <Button
 
         android:id="@+id/btnRestart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Novo código EAN13"
+        android:text="Nova lista"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline2" />
+
+    <TextView
+        android:id="@+id/txtRelatorio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text=""
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnRestart" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
