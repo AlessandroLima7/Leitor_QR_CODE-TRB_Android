@@ -3,6 +3,7 @@ package com.example.projeto5n_professorrangel
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.text.method.ScrollingMovementMethod
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -13,7 +14,9 @@ import com.google.zxing.integration.android.IntentResult
 import org.w3c.dom.Text
 
 class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
+    var respostaSobreQtd:String = ""
     var pipe:String = "|"
+    var dots:String = ":"
     var leuLista:Boolean = false
     var produtosParaBusca = HashMap<String, Int>()
     var listaCodProdutos: MutableList<String> = mutableListOf()
@@ -37,6 +40,7 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
     var andarFinal:Boolean = false
     var codigoFinal:Boolean = false
     var produtoEncontrado:Boolean = false
+    var qtdEstoqueAprovada:Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +66,7 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
             produto = ""
             strQtdEstoque = ""
             relatorioFinal = ""
+            respostaSobreQtd = ""
 
             n = ""
             a = ""
@@ -73,6 +78,7 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
             produtoEncontrado = false
             qtdAprovada = false
             leuLista = false
+            qtdEstoqueAprovada = true
 
             listaCodProdutos.clear()
             produtosParaBusca.clear()
@@ -104,7 +110,7 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
 
     fun systemLogic(result:String) {
 
-        if(pipe in result || leuLista) {
+        if(dots in result || leuLista) {
             leuLista = true
             resultRead(result)
             if (produtosParaBusca.isEmpty()) {
@@ -112,11 +118,76 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                     var diviProdutos = result.split("|")
                     for (i in diviProdutos) {
                         var p = i.split(":")
-                        produtosParaBusca[p[0]] = p[1].toInt()
-                        listaCodProdutos.add(p[0])
+                        var respostaQtd = pro.checkQ(p[0], p[1].toInt())
+                        if(respostaQtd == "OK"){
+                            produtosParaBusca[p[0]] = p[1].toInt()
+                            listaCodProdutos.add(p[0])
+                        }
+                        else {
+                            respostaSobreQtd = respostaSobreQtd + "\n" + respostaQtd
+                            qtdEstoqueAprovada = false
+                        }
 
 
                     }
+                    if(qtdEstoqueAprovada){
+                        val txtRua = findViewById<TextView>(R.id.txtRua)
+                        txtRua.text = ""
+                        txtRua.isVisible = false
+                        var product: String = listaCodProdutos[0]
+                        var tudo = pro.search(product)
+                        if (tudo == "Código EAN13 não encontrado.") {
+                            Toast.makeText(
+                                applicationContext,
+                                "Código EAN13 não encontrado!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                        } else {
+                            val codigo = tudo.split("|")
+                            codigoMaster = codigo[0]
+                            rua = codigo[2]
+                            numero = codigo[2] + "-" + codigo[3]
+                            n = codigo[3]
+                            andar = codigo[2] + "-" + codigo[3] + "-" + codigo[4]
+                            a = codigo[4]
+                            produto = codigo[1]
+                            strQtdEstoque = codigo[5]
+                            var resp = rua.replace("R", "RUA ")
+                            txtRua.isVisible = true
+                            txtRua.text = "Encontre: $resp"
+                        }
+                    }
+                    else {
+                        val txtRua = findViewById<TextView>(R.id.txtRua)
+                        val btnBuscar = findViewById<Button>(R.id.btnBuscar)
+                        btnBuscar.isVisible = false
+                        txtRua.isVisible = true
+                        txtRua.text = ""
+                        txtRua.text = respostaSobreQtd
+                        txtRua.movementMethod = ScrollingMovementMethod()
+                        produtosParaBusca.clear()
+                    }
+
+                }
+                else if(produtosParaBusca.isEmpty() && result.indexOf(":") != 1 && result.indexOf("|") != 0) {
+                    var p = result.split(":")
+                    var respostaQtd = pro.checkQ(p[0], p[1].toInt())
+                    if(respostaQtd == "OK"){
+                        produtosParaBusca[p[0]] = p[1].toInt()
+                        listaCodProdutos.add(p[0])
+                    }
+                    else {
+                        respostaSobreQtd = respostaSobreQtd + "\n" + respostaQtd
+                        qtdEstoqueAprovada = false
+                    }
+
+
+
+                if(qtdEstoqueAprovada){
+                    val txtRua = findViewById<TextView>(R.id.txtRua)
+                    txtRua.text = ""
+                    txtRua.isVisible = false
                     var product: String = listaCodProdutos[0]
                     var tudo = pro.search(product)
                     if (tudo == "Código EAN13 não encontrado.") {
@@ -137,11 +208,22 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                         produto = codigo[1]
                         strQtdEstoque = codigo[5]
                         var resp = rua.replace("R", "RUA ")
-                        val txtRua = findViewById<TextView>(R.id.txtRua)
                         txtRua.isVisible = true
                         txtRua.text = "Encontre: $resp"
                     }
-                } else {
+                }
+                else {
+                    val txtRua = findViewById<TextView>(R.id.txtRua)
+                    val btnBuscar = findViewById<Button>(R.id.btnBuscar)
+                    btnBuscar.isVisible = false
+                    txtRua.isVisible = true
+                    txtRua.text = ""
+                    txtRua.text = respostaSobreQtd
+                    txtRua.movementMethod = ScrollingMovementMethod()
+                    produtosParaBusca.clear()
+                }
+                }
+                else {
                     Toast.makeText(
                         applicationContext,
                         "Por favor, leia uma lista de produtos.",
@@ -223,7 +305,7 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                                         "$codigoMaster|$produto|$rua|$nume|$and|$estoque"
                                     )
                                     var relatorio =
-                                        "Código EAN: $codigoMaster  \nProduto: $produto\nQuantidade coletada: $coletados \nEstoque: $estoque\n"
+                                        "Código EAN: $codigoMaster  \nProduto: $produto\nQuantidade coletada: $coletados \nEstoque: $estoque\n\n"
                                     listaCodProdutos.removeAt(0)
                                     produtosParaBusca.remove(codigoMaster)
                                     codigoMaster = ""
@@ -235,6 +317,7 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                                     andarFinal = false
                                     codigoFinal = false
                                     produtoEncontrado = false
+                                    qtdEstoqueAprovada = true
 
                                     if (produtosParaBusca.isNotEmpty()) {
                                         var product: String = listaCodProdutos[0]
@@ -271,6 +354,7 @@ class LeitorDeProdutosActivity: AppCompatActivity(R.layout.leitor_de_produtos) {
                                     txtRelatorio.isVisible = true
                                     txtRelatorio.text = ""
                                     txtRelatorio.text = relatorioFinal
+                                    txtRelatorio.movementMethod = ScrollingMovementMethod()
 
 
                                 }
